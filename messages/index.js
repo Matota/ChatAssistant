@@ -11,54 +11,7 @@ var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure
     openIdMetadata: process.env['BotOpenIdMetadata']
 });
 
-var bot = new builder.UniversalBot(connector, [
-    function (session) {
-        builder.Prompts.choice(session, 'What card would like to test?', CardNames, {
-            maxRetries: 3,
-            retryPrompt: 'Ooops, what you wrote is not a valid option, please try again'
-        });
-    },
-    function (session, results) {
-
-        // create the card based on selection
-        var selectedCardName = results.response.entity;
-        var card = createCard(selectedCardName, session);
-
-        // attach the card to the reply message
-        var msg = new builder.Message(session).addAttachment(card);
-        session.send(msg);
-    }
-]);
-
-var HeroCardName = 'Hero card';
-var ThumbnailCardName = 'Thumbnail card';
-var ReceiptCardName = 'Receipt card';
-var SigninCardName = 'Sign-in card';
-var AnimationCardName = "Animation card";
-var VideoCardName = "Video card";
-var AudioCardName = "Audio card";
-var CardNames = [HeroCardName, ThumbnailCardName, ReceiptCardName, SigninCardName, AnimationCardName, VideoCardName, AudioCardName];
-
-function createCard(selectedCardName, session) {
-    switch (selectedCardName) {
-        case HeroCardName:
-            return createHeroCard(session);
-        case ThumbnailCardName:
-            return createThumbnailCard(session);
-        case ReceiptCardName:
-            return createReceiptCard(session);
-        case SigninCardName:
-            return createSigninCard(session);
-        case AnimationCardName:
-            return createAnimationCard(session);
-        case VideoCardName:
-            return createVideoCard(session);
-        case AudioCardName:
-            return createAudioCard(session);
-        default:
-            return createHeroCard(session);
-    }
-}
+var bot = new builder.UniversalBot(connector);
 
 // Make sure you add code to validate these fields
 var luisAppId = process.env.LuisAppId;
@@ -81,11 +34,51 @@ bot.dialog('/Greetings', [
         session.send('Hey! This is Hum Assistant. Please tell me how can I help you?');
         session.endDialog();
 
-        
+        // try extracting entities
+       /* var cityEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.geography.city');
+        var airportEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'AirportCode');
+        if (cityEntity) {
+            // city entity detected, continue to next step
+            session.dialogData.searchType = 'city';
+            next({ response: cityEntity.entity });
+        } else if (airportEntity) {
+            // airport entity detected, continue to next step
+            session.dialogData.searchType = 'airport';
+            next({ response: airportEntity.entity });
+        } else {
+            // no entities detected, ask user for a destination
+            builder.Prompts.text(session, 'Please enter your destination');
+        }*/
     },
     function (session, results) {
         session.send('Whats Up Bro?');
-      
+       /* var destination = results.response;
+
+        var message = 'Looking for hotels';
+        if (session.dialogData.searchType === 'airport') {
+            message += ' near %s airport...';
+        } else {
+            message += ' in %s...';
+        }
+
+        session.send(message, destination);*/
+
+        // Async search
+       /* Store
+            .searchHotels(destination)
+            .then(function (hotels) {
+                // args
+                session.send('I found %d hotels:', hotels.length);
+
+                var message = new builder.Message()
+                    .attachmentLayout(builder.AttachmentLayout.carousel)
+                    .attachments(hotels.map(hotelAsAttachment));
+
+                session.send(message);
+
+                // End
+                session.endDialog();
+            });*/
     }
 ]).triggerAction({
     matches: 'Greetings',
@@ -280,6 +273,49 @@ function getCardsAttachments(session) {
     ];
 }
 
+//map store location 
+
+bot.dialog('/locate', [
+    function (session, args) {
+        var intent = args.intent;
+        var cityEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.geography.city');
+        if(cityEntity) {
+            var message = 'Looking for Verizon stores near %s!';
+            session.send(message, cityEntity.entity);
+            var card = createMapcard(session, cityEntity.entity);
+            var msg = new builder.Message(session).addAttachment(card);
+            session.send(msg);
+            session.endDialog('Here is the location nearest to you.');
+        } else {
+            builder.Prompts.text(session, 'Please enter the location to find the stores!');
+        }
+        
+},
+ function (session, results) {
+    var city = results.response;
+    var message = 'Looking for Verizon stores near %s!';
+    session.send(message, city);
+    var card = createMapcard(session, city);
+    var msg = new builder.Message(session).addAttachment(card);
+    session.send(msg);
+    session.endDialog('Here you Go!');
+}
+]).triggerAction({
+   matches: 'locate'
+});
+
+function createMapcard(session, city) {
+    return new builder.HeroCard(session)
+        .title('Store Location')
+        .subtitle('')
+        .text('')
+        .images([
+            builder.CardImage.create(session, 'https://www.mapquestapi.com/staticmap/v4/getplacemap?key=ezuyhAKQ1v0y6i2AUYXndRjkFagn07Bn&location='+city+'&size=500,280&zoom=9&showicon=red_1-1')
+        ])
+        .buttons([
+            builder.CardAction.openUrl(session, 'https://www.mapquest.com/search/results?layer=shopping&query='+city+'&boundingBox=47.100044694025215,-121.11328124999999,28.729130483430154,-74.8828125&page=0', 'More locations.')
+        ]);
+}
 
 //emulator settings
 if (useEmulator) {

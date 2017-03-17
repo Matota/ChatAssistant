@@ -319,6 +319,96 @@ function createMapcard(session, city) {
         ]);
 }
 
+//others
+//work
+//hum
+
+bot.dialog('/work', [
+    function (session, args) {
+    var cards = getWorksCard();
+
+    // create reply with Carousel AttachmentLayout
+    var reply = new builder.Message(session)
+        .attachmentLayout(builder.AttachmentLayout.carousel)
+        .attachments(cards);
+
+    session.send(reply);
+    session.endDialog('Hope that answered your question :D');
+        
+},
+ function (session, results) {
+
+}
+]).triggerAction({
+   matches: 'work'
+});
+
+function getWorksCard(session) {
+    return [
+        new builder.HeroCard(session)
+            .title('How it works!')
+            .subtitle('')
+            .text('After activating your account, just plug the OBD device into the OBD-II port in your car and access HUm features on your phone.')
+            .images([
+                builder.CardImage.create(session, 'http://unified-mobile.com/wp-content/uploads/2016/03/Hum-3.png')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+            ]),
+        new builder.HeroCard(session)
+            .title('Mobile App and Portal.')
+            .subtitle('')
+            .text('Download the Hum app and create your account.')
+            .images([
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-3.png')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+            ]),
+        new builder.HeroCard(session)
+            .title('Hum Speaker.')
+            .subtitle('Near or far, Hum helps locate your car')
+            .text(' Clip the Hum speaker to your visor.')
+            .images([
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-2.png')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+            ]),
+
+        new builder.HeroCard(session)
+            .title('OBD Device.')
+            .subtitle('Plug the OBD Reader into your car\'s OBD-II port.')
+            .text('ocated under the steering wheel of most vehicles made after 1996.')
+            .images([
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+            ])
+    ];
+}
+
+bot.dialog('/signup', [
+    function (session, args) {
+        var card = createSigninCard(session);
+        var msg = new builder.Message(session).addAttachment(card);
+        session.send(msg);
+        session.endDialog('Create an account from the above link and you should be good to go :)');
+},
+ function (session, results) {
+
+}
+]).triggerAction({
+   matches: 'signup'
+});
+
+function createSigninCard(session) {
+    return new builder.SigninCard(session)
+        .text('Hum sign in card')
+        .button('Sign-in', 'https://customer.hum.com');
+}
+
 //emulator settings
 if (useEmulator) {
     var restify = require('restify');

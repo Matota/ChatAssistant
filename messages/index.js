@@ -121,31 +121,29 @@ bot.dialog('/Help', function (session) {
 var order = 927302;
 function createReceiptCard(session) {
     return new builder.ReceiptCard(session)
-        .title('John Doe')
+        .title('Subscription charges.')
         .facts([
             builder.Fact.create(session, order++, 'Order Number'),
-            builder.Fact.create(session, 'VISA 5555-****', 'Payment Method')
+            builder.Fact.create(session, 'VISA 4102-****-**76', 'Payment Method')
         ])
         .items([
-            builder.ReceiptItem.create(session, '$ 38.45', 'Bill Amount')
+            builder.ReceiptItem.create(session, '$ 10.99', 'Monthly Subscription')
                 .quantity(368)
                 .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/traffic-manager.png')),
-            builder.ReceiptItem.create(session, '$ 45.00', 'Previous Bill Amount')
+            builder.ReceiptItem.create(session, '$ 0.00', 'Equipment charge')
                 .quantity(720)
                 .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/cloud-service.png'))
         ])
-        .tax('$ 7.50')
-        .total('$ 90.95')
+        .tax('$ 1.25')
+        .total('$ 12.24')
         .buttons([
-            builder.CardAction.openUrl(session, 'https://azure.microsoft.com/en-us/pricing/', 'More Information')
+            builder.CardAction.openUrl(session, 'https://shopping.hum.com', 'More Information')
                 .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
         ]);
 }
 
 
 function validateMonth(month) {
-    console.log('entering validateMonth');
-    console.log(month);
     var monthArray = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
     if (monthArray.indexOf(month.toLowerCase()) > -1) {
         return true;

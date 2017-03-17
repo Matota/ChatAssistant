@@ -29,58 +29,48 @@ bot.recognizer(recognizer);
 .matches('<yourIntent>')... See details at http://docs.botframework.com/builder/node/guides/understanding-natural-language/
 */
   
+var DialogLabels = {
+    signup: 'Sign Up',
+    features: 'Hum Features',
+    support: 'Store Locator'
+};
+
 bot.dialog('/Greetings', [
+
     function (session, args, next) {
-        var intent = args.intent;
-        console.log(intent);
-        session.send('Hey! This is Hum Assistant. Please tell me how can I help you?');
-        session.endDialog();
-
-        // try extracting entities
-       /* var cityEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.geography.city');
-        var airportEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'AirportCode');
-        if (cityEntity) {
-            // city entity detected, continue to next step
-            session.dialogData.searchType = 'city';
-            next({ response: cityEntity.entity });
-        } else if (airportEntity) {
-            // airport entity detected, continue to next step
-            session.dialogData.searchType = 'airport';
-            next({ response: airportEntity.entity });
-        } else {
-            // no entities detected, ask user for a destination
-            builder.Prompts.text(session, 'Please enter your destination');
-        }*/
+        // prompt for search option
+        builder.Prompts.choice(
+            session,
+            'Hey! This is Hum Assistant. Please tell me how can I help you?',
+            [DialogLabels.signup, DialogLabels.features, DialogLabels.support],
+            {
+                maxRetries: 5,
+                retryPrompt: 'Not a valid option'
+            });
     },
-    function (session, results) {
-        session.send('Whats Up Bro?');
-       /* var destination = results.response;
+    function (session, result) {
+        if (!result.response) {
 
-        var message = 'Looking for hotels';
-        if (session.dialogData.searchType === 'airport') {
-            message += ' near %s airport...';
-        } else {
-            message += ' in %s...';
+            session.send('Ooops! Too many attemps :( But don\'t worry, you can try again!');
+            return session.endDialog();
         }
 
-        session.send(message, destination);*/
+        // on error, start over
+        session.on('error', function (err) {
+            session.send('Ooops! I don\'t think I can help you with that :( But don\'t worry, you can try again!');
+            session.endDialog();
+        });
 
-        // Async search
-       /* Store
-            .searchHotels(destination)
-            .then(function (hotels) {
-                // args
-                session.send('I found %d hotels:', hotels.length);
-
-                var message = new builder.Message()
-                    .attachmentLayout(builder.AttachmentLayout.carousel)
-                    .attachments(hotels.map(hotelAsAttachment));
-
-                session.send(message);
-
-                // End
-                session.endDialog();
-            });*/
+        // continue on proper dialog
+        var selection = result.response.entity;
+        switch (selection) {
+            case DialogLabels.signup:
+                return session.beginDialog('/signup');
+            case DialogLabels.features:
+                return session.beginDialog('/features');
+            case DialogLabels.support:
+                return session.beginDialog('/locate');
+        }
     }
 ]).triggerAction({
     matches: 'Greetings',
@@ -279,19 +269,23 @@ function getCardsAttachments(session) {
 
 bot.dialog('/locate', [
     function (session, args) {
-        var intent = args.intent;
-        var cityEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.geography.city');
-        if(cityEntity) {
-            var message = 'Looking for Verizon stores near %s!';
-            session.send(message, cityEntity.entity);
-            var card = createMapcard(session, cityEntity.entity);
-            var msg = new builder.Message(session).addAttachment(card);
-            session.send(msg);
-            session.endDialog('Here is the location nearest to you.');
+        if(args) {
+            var intent = args.intent;
+            var cityEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'builtin.geography.city');
+            if(cityEntity) {
+                var message = 'Looking for Verizon stores near %s!';
+                session.send(message, cityEntity.entity);
+                var card = createMapcard(session, cityEntity.entity);
+                var msg = new builder.Message(session).addAttachment(card);
+                session.send(msg);
+                session.endDialog('Here is the location nearest to you.');
+            } else {
+                builder.Prompts.text(session, 'Please enter the location to find the stores!');
+            }
         } else {
             builder.Prompts.text(session, 'Please enter the location to find the stores!');
         }
-        
+           
 },
  function (session, results) {
     var city = results.response;
@@ -300,7 +294,7 @@ bot.dialog('/locate', [
     var card = createMapcard(session, city);
     var msg = new builder.Message(session).addAttachment(card);
     session.send(msg);
-    session.endDialog('Here you Go!');
+    session.endDialog('Hope that helps :D');
 }
 ]).triggerAction({
    matches: 'locate'

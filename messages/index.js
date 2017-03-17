@@ -1,7 +1,7 @@
 "use strict";
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
-
+var request = require('request');
 var useEmulator = (process.env.NODE_ENV == 'development');
 
 var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure.BotServiceConnector({
@@ -402,6 +402,77 @@ function createSigninCard(session) {
         .text('Hum sign in card')
         .button('Sign-in', 'https://customer.hum.com');
 }
+
+//vehicle incomaptible
+
+bot.dialog('/compat', [
+    function (session, args) {
+        builder.Prompts.text(session, 'Hey tell me your car make!');
+    },
+    function (session, results) {
+        session.userData.make = results.response.toUpperCase();
+        builder.Prompts.text(session, 'Let me know your ' + session.userData.make+'\'s'+' model!');
+    },
+    function (session, results) {
+        session.userData.model = results.response.toUpperCase();
+        builder.Prompts.number(session, 'Tell me your ' + session.userData.make+' '+session.userData.model+'\'s'+' year of manufacture!');
+    },
+    function (session, results) {
+        var card,msg;
+        session.userData.year = results.response;
+        session.send('Checking if your car with make ' + session.userData.make +', model ' + session.userData.model +
+            ' and year ' + session.userData.year + ' is compatible with Hum...');
+        request.get('https://www.hum.com/bin/core/compatibility.json?year='+session.userData.year+'&make='+ session.userData.make +'&model='+session.userData.model+'',function(err,res,body){
+            var test = JSON.parse(body);
+            console.log(test.response.responseCode);
+            if(err) {
+                card = compatibleMapcard(session, false);
+                msg = new builder.Message(session).addAttachment(card);
+                session.send(msg);
+                session.endDialog('To know more click the link above!');
+            }
+            if(test.response.responseCode === 2000 ) {
+                card = compatibleMapcard(session, true);
+                msg = new builder.Message(session).addAttachment(card);
+                session.send(msg);
+                session.endDialog('To know more click the link above!');
+            } else {
+                card = compatibleMapcard(session, false);
+                msg = new builder.Message(session).addAttachment(card);
+                session.send(msg);
+                session.endDialog('To know more click the link above!');
+            }
+
+        });
+    }
+    
+]).triggerAction({
+   matches: 'compat'
+});
+
+function compatibleMapcard(session, status) {
+    if(status) {
+        var text = 'Compatible :)';
+        var checkTest = 'Your vehicle is Hum compatible!';
+        var image = 'http://www.clipartkid.com/images/2/thumbs-up-happy-smiley-emoticon-clipart-royalty-free-UVUNH6-clipart.png';
+    }else {
+        var text = 'Incompatible :(';
+        var checkTest = 'Unfortunately, your vehicle is not supported at this time.';
+        var image = 'http://clipart-library.com/images/yTkr9EaGc.png';
+        
+    }
+    return new builder.HeroCard(session)
+        .title(text)
+        .subtitle('')
+        .text(checkTest)
+        .images([
+            builder.CardImage.create(session, image)
+        ])
+        .buttons([
+            builder.CardAction.openUrl(session, 'https://customer.hum.com/activation/checkmycar.html', 'More Information')
+        ]);
+}
+
 
 //emulator settings
 if (useEmulator) {

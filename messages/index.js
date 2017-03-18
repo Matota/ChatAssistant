@@ -23,7 +23,7 @@ var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.micro
 //const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v1/application?id=' + luisAppId + '&subscription-key=' + luisAPIKey;
 
 // Main dialog with LUIS
-var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/54347466-9e43-41b8-9ebc-09bab74b36f6?subscription-key=e848884cd17a41a78879b6932ecc884a&verbose=true&q=');
+var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/54347466-9e43-41b8-9ebc-09bab74b36f6?subscription-key=e848884cd17a41a78879b6932ecc884a&verbose=true&spellCheck=true&q=');
 bot.recognizer(recognizer);
 /*
 .matches('<yourIntent>')... See details at http://docs.botframework.com/builder/node/guides/understanding-natural-language/
@@ -32,7 +32,10 @@ bot.recognizer(recognizer);
 var DialogLabels = {
     signup: 'Sign Up',
     features: 'Hum Features',
-    support: 'Store Locator'
+    support: 'Store Locator',
+    compatible: 'Vehice Compatibility',
+    works: 'Get to know how hum works!',
+    team: 'Meet the team!'
 };
 
 bot.dialog('/Greetings', [
@@ -41,8 +44,8 @@ bot.dialog('/Greetings', [
         // prompt for search option
         builder.Prompts.choice(
             session,
-            'Hey! This is Hum Assistant. Please tell me how can I help you?',
-            [DialogLabels.signup, DialogLabels.features, DialogLabels.support],
+            'Hey! This is Hum Assistant. How can I help you?',
+            [DialogLabels.signup, DialogLabels.features, DialogLabels.support, DialogLabels.compatible, DialogLabels.works, DialogLabels.team],
             {
                 maxRetries: 5,
                 retryPrompt: 'Not a valid option'
@@ -70,6 +73,12 @@ bot.dialog('/Greetings', [
                 return session.beginDialog('/features');
             case DialogLabels.support:
                 return session.beginDialog('/locate');
+            case DialogLabels.compatible:
+                return session.beginDialog('/compat');
+            case DialogLabels.works:
+                return session.beginDialog('/work');
+            case DialogLabels.team:
+                return session.beginDialog('/creators');
         }
     }
 ]).triggerAction({
@@ -102,16 +111,55 @@ bot.dialog('/ShowBill', [
         session.send(message, month);
         var card = createReceiptCard(session, month);
         var msg = new builder.Message(session).addAttachment(card);
-        setTimeout(function(){ session.send(msg); }, 5000);
-        setTimeout(function(){ session.endDialog('Here you Go!'); }, 6000);
+        session.send(msg);
+        session.endDialog('Here you Go!');
     }
 ]).triggerAction({
    matches: 'ShowBill'
 });
 
-bot.dialog('/Help', function (session) {
-    session.endDialog('hey what can i help you with?');
-}).triggerAction({
+bot.dialog('/Help', [
+
+    function (session, args, next) {
+        // prompt for search option
+        builder.Prompts.choice(
+            session,
+            'Hey how can I help you?',
+            [DialogLabels.signup, DialogLabels.features, DialogLabels.support, DialogLabels.compatible, DialogLabels.works],
+            {
+                maxRetries: 5,
+                retryPrompt: 'Not a valid option'
+            });
+    },
+    function (session, result) {
+        if (!result.response) {
+
+            session.send('Ooops! Too many attemps :( But don\'t worry, you can try again!');
+            return session.endDialog();
+        }
+
+        // on error, start over
+        session.on('error', function (err) {
+            session.send('Ooops! I don\'t think I can help you with that :( But don\'t worry, you can try again!');
+            session.endDialog();
+        });
+
+        // continue on proper dialog
+        var selection = result.response.entity;
+        switch (selection) {
+            case DialogLabels.signup:
+                return session.beginDialog('/signup');
+            case DialogLabels.features:
+                return session.beginDialog('/features');
+            case DialogLabels.support:
+                return session.beginDialog('/locate');
+            case DialogLabels.compatible:
+                return session.beginDialog('/compat');
+            case DialogLabels.works:
+                return session.beginDialog('/work');
+        }
+    }
+]).triggerAction({
     matches: 'Help'
 });
 
@@ -121,7 +169,7 @@ bot.dialog('/Help', function (session) {
 var order = 927302;
 function createReceiptCard(session) {
     return new builder.ReceiptCard(session)
-        .title('Subscription charges.')
+        .title('Hum subscription charges.')
         .facts([
             builder.Fact.create(session, order++, 'Order Number'),
             builder.Fact.create(session, 'VISA 4102-****-**76', 'Payment Method')
@@ -205,6 +253,7 @@ bot.dialog('/features', [
         .attachments(cards);
 
     session.send(reply);
+    session.endDialog('There are plenty of other features! Check them out by clicking "Learn more" above');
         
 },
  function (session, results) {
@@ -340,67 +389,7 @@ function getWorksCard(session) {
         new builder.HeroCard(session)
             .title('How it works!')
             .subtitle('')
-            .text('After activating your account, just plug the OBD device into the OBD-II port in your car and access HUm features on your phone.')
-            .images([
-                builder.CardImage.create(session, 'http://unified-mobile.com/wp-content/uploads/2016/03/Hum-3.png')
-            ])
-            .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
-            ]),
-        new builder.HeroCard(session)
-            .title('Mobile App and Portal.')
-            .subtitle('')
-            .text('Download the Hum app and create your account.')
-            .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-3.png')
-            ])
-            .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
-            ]),
-        new builder.HeroCard(session)
-            .title('Hum Speaker.')
-            .subtitle('Near or far, Hum helps locate your car')
-            .text(' Clip the Hum speaker to your visor.')
-            .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-2.png')
-            ])
-            .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
-            ]),
-
-        new builder.HeroCard(session)
-            .title('OBD Device.')
-            .subtitle('Plug the OBD Reader into your car\'s OBD-II port.')
-            .text('ocated under the steering wheel of most vehicles made after 1996.')
-            .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
-            ])
-            .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
-            ])
-    ];
-}
-
-bot.dialog('/signup', [
-    function (session, args) {
-        var card = createSigninCard(session);
-        var msg = new builder.Message(session).addAttachment(card);
-        session.send(msg);
-        session.endDialog('Create an account from the above link and you should be good to go :)');
-},
- function (session, results) {
-
-}
-]).triggerAction({
-   matches: 'signup'
-});
-
-function createSigninCard(session) {
-    return new builder.SigninCard(session)
-        .text('Hum sign in card')
-        .button('Sign-in', 'https://customer.hum.com');
-}
-
+            .text('After activating your account, just plug the OBD device into the OBD-II port in your car and access Hum features on your phone.')
 //vehicle incomaptible
 
 bot.dialog('/compat', [
@@ -470,7 +459,60 @@ function compatibleMapcard(session, status) {
             builder.CardAction.openUrl(session, 'https://customer.hum.com/activation/checkmycar.html', 'More Information')
         ]);
 }
+//creators.
+bot.dialog('/creators', [
+    function (session, args) {
+        var cards = getCreatorsCard();
 
+    // create reply with Carousel AttachmentLayout
+    var reply = new builder.Message(session)
+        .attachmentLayout(builder.AttachmentLayout.carousel)
+        .attachments(cards);
+
+    session.send(reply);
+    session.endDialog('Hey I am one of the best Artificial intelligence created! Thank my creators :D');
+},
+ function (session, results) {
+
+}
+]).triggerAction({
+   matches: 'creators'
+});
+
+function getCreatorsCard(session) {
+    return [
+        new builder.HeroCard(session)
+            .title('Prashanth Nagaraj')
+            .subtitle('Principal Engineer, IOT Telematics at Verizon')
+            .text('Software designer and product developer having experience of over 14 years in digital consumer and networking domain.')
+            .images([
+                builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_200_200/AAEAAQAAAAAAAAO7AAAAJDMyMDY3NjA0LWM1ODAtNDVjNC04YmUxLTJjNGU2NWE5YzUyZg.jpg')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.linkedin.com/in/prashanth-nagaraj-2108197b/', 'Know more about Prashanth')
+            ]),
+        new builder.HeroCard(session)
+            .title('Vijith Vishnu')
+            .subtitle('Member Technical Staff III at Verizon Telematics Inc.')
+            .text('A full-stack software engineer, with sound knowledge of front-end and back-end programming along with database interactions.')
+            .images([
+                builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_200_200/AAEAAQAAAAAAAAhCAAAAJDA3NTgyOGY3LTM2N2UtNDFjYS1iMzMyLWVhNjNmYTI0MjE2Mg.jpg')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.linkedin.com/in/vijith-v-538b39a1/', 'Know more about Vijith')
+            ]),
+        new builder.HeroCard(session)
+            .title('Hitesh Ahuja')
+            .subtitle('Member Technical Staff III at Verizon Telematics Inc.')
+            .text('An IT professional with around 4 years experience in mobile business applications design and development.')
+            .images([
+                builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_200_200/AAEAAQAAAAAAAAieAAAAJDMzMWY3ODBjLTBkM2UtNDdjNC1iNTAyLTI1MTEyN2U5MGVhNQ.jpg')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.linkedin.com/in/hitesh-ahuja90/', 'Know more about Hitesh')
+            ])
+    ];
+}
 
 //emulator settings
 if (useEmulator) {

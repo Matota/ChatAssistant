@@ -23,7 +23,7 @@ var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.micro
 //const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v1/application?id=' + luisAppId + '&subscription-key=' + luisAPIKey;
 
 // Main dialog with LUIS
-var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b2cb429c-dcb6-45c2-86b8-2b8c5f54daae?subscription-key=4c1fb153e77e4323b03fffc2d3f1f0b9&verbose=true&timezoneOffset=0&q=');
+var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/54347466-9e43-41b8-9ebc-09bab74b36f6?subscription-key=7d7cb87429054f518873c52f1109c4b6&timezoneOffset=5.5&verbose=true&spellCheck=true&q=');
 bot.recognizer(recognizer);
 /*
 .matches('<yourIntent>')... See details at http://docs.botframework.com/builder/node/guides/understanding-natural-language/

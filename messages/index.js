@@ -12,7 +12,7 @@ var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure
 });
 
 var bot = new builder.UniversalBot(connector, function (session) {
-    session.send('Sorry, I did not understand \'%s\'. Type \'help\' if you need assistance.', session.message.text);
+	session.beginDialog('/callsupport');
 });
 
 // Make sure you add code to validate these fields
@@ -25,10 +25,26 @@ var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.micro
 // Main dialog with LUIS
 var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b2cb429c-dcb6-45c2-86b8-2b8c5f54daae?subscription-key=4c1fb153e77e4323b03fffc2d3f1f0b9&verbose=true&timezoneOffset=0&spellCheck=true&q=');
 bot.recognizer(recognizer);
+
 /*
 .matches('<yourIntent>')... See details at http://docs.botframework.com/builder/node/guides/understanding-natural-language/
 */
-  
+const logConv = function(event) {
+	 console.log('message' + event.text + ' ' + 'user:' + ' ' + event.address.user.name);
+};
+
+bot.use({
+	receive: function(event, next) {
+		console.log('receive message ' + event.text );
+		console.log('receive user: ' + event.address.user.name);
+		next();
+	},
+	send : function(event, next) {
+		console.log('send message ' + event.text );
+		console.log('send user: ' + event.address.user.name);
+		next();
+	}
+})
 var DialogLabels = {
     signup: 'Sign Up',
     features: 'Hum Features',
@@ -37,6 +53,26 @@ var DialogLabels = {
     works: 'Get to know how hum works!',
     team: 'Meet the team!'
 };
+bot.dialog('/callsupport', [
+    function (session, args) {
+		var card = createSupportCard(session);
+        var msg = new builder.Message(session).addAttachment(card);
+		session.send('Sorry that i couldn\'t answer your query.');
+        setTimeout(function(){ session.send(msg); }, 3000);
+		setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 6000);
+},
+ function (session, results) {
+
+}
+]).triggerAction({
+   matches: 'callsupport'
+});
+
+function createSupportCard(session) {
+    return new builder.SigninCard(session)
+        .text('Here to help!')
+        .button('Call Customer support', 'https://www.google.com');
+}
 
 bot.dialog('/Greetings', [
 
@@ -539,6 +575,37 @@ bot.dialog('/creators', [
    matches: 'creators'
 });
 
+bot.dialog('/problem', [
+    function (session, args) {
+		var cards = getWorksCard();
+
+    // create reply with Carousel AttachmentLayout
+		var reply = new builder.Message(session)
+			.attachmentLayout(builder.AttachmentLayout.carousel)
+			.attachments(cards);
+
+			session.send(reply);
+			setTimeout(function(){ builder.Prompts.text(session, 'Have you tried to follow the steps mentioned in the above links?'); }, 3000);
+
+},
+ function (session, results) {
+    var replyFromUser = results.response;
+	if (replyFromUser === 'yes'){
+		var message = 'Let me check HUM system to analyze your problem! Give me a moment :)';	
+		session.send(message);
+		setTimeout(function(){ session.send('Seems like you din\'t start your Honda Civic after installing the HUM Device.'); }, 8000);
+		setTimeout(function(){ session.endDialog('Please start your car and you shouldn\'t have any issue with your HUM Application! :D'); }, 10000);
+        
+	} else {
+		var message = 'Please follow the steps mentioned in the above links and you shouldn\'t have any issues! :D';	
+		 session.endDialog(message);
+	}
+        
+    }
+]).triggerAction({
+   matches: 'problem'
+});
+
 function getCreatorsCard(session) {
     return [
         new builder.HeroCard(session)
@@ -553,7 +620,7 @@ function getCreatorsCard(session) {
             ]),
         new builder.HeroCard(session)
             .title('Vijith Vishnu')
-            .subtitle('Member Technical Staff III at Verizon Telematics Inc.')
+            .subtitle('Senior PD engineer I at Verizon Telematics Inc.')
             .text('A full-stack software engineer, with sound knowledge of front-end and back-end programming along with database interactions.')
             .images([
                 builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_200_200/AAEAAQAAAAAAAAhCAAAAJDA3NTgyOGY3LTM2N2UtNDFjYS1iMzMyLWVhNjNmYTI0MjE2Mg.jpg')
@@ -563,7 +630,7 @@ function getCreatorsCard(session) {
             ]),
         new builder.HeroCard(session)
             .title('Hitesh Ahuja')
-            .subtitle('Member Technical Staff III at Verizon Telematics Inc.')
+            .subtitle('PD engineer II at Verizon Telematics Inc.')
             .text('An IT professional with around 4 years experience in mobile business applications design and development.')
             .images([
                 builder.CardImage.create(session, 'https://media.licdn.com/mpr/mpr/shrinknp_200_200/AAEAAQAAAAAAAAieAAAAJDMzMWY3ODBjLTBkM2UtNDdjNC1iNTAyLTI1MTEyN2U5MGVhNQ.jpg')

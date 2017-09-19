@@ -81,9 +81,8 @@ bot.dialog('/callsupport', [
 		var card = createSupportCard(session);
         var msg = new builder.Message(session).addAttachment(card);
 		session.send('Sorry that I couldn\'t answer your query.');
-        setTimeout(function(){ session.send(msg); }, 2000);
-		setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 4000);
-		setTimeout(function(){ session.send('Here is your unique transaction ID ' + Math.floor((Math.random() * 9999293) + 1)+ '.'); }, 6000);
+        setTimeout(function(){ session.send(msg); }, 3000);
+ -      setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 6000);
 		
 },
  function (session, results) {

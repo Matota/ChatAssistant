@@ -2,6 +2,7 @@
 var builder = require("botbuilder");
 var botbuilder_azure = require("botbuilder-azure");
 var request = require('request');
+var mongo = require('mongodb').MongoClient;
 var useEmulator = (process.env.NODE_ENV == 'development');
 
 var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure.BotServiceConnector({
@@ -12,6 +13,7 @@ var connector = useEmulator ? new builder.ChatConnector() : new botbuilder_azure
 });
 
 var bot = new builder.UniversalBot(connector, function (session) {
+	session.send('Sorry, I didn\'t understand \'%s\'.', session.message.text);
 	session.beginDialog('/callsupport');
 });
 
@@ -29,22 +31,43 @@ bot.recognizer(recognizer);
 /*
 .matches('<yourIntent>')... See details at http://docs.botframework.com/builder/node/guides/understanding-natural-language/
 */
-const logConv = function(event) {
-	 console.log('message' + event.text + ' ' + 'user:' + ' ' + event.address.user.name);
-};
+
 
 bot.use({
 	receive: function(event, next) {
 		console.log('receive message ' + event.text );
-		console.log('receive user: ' + event.address.user.name);
+		mongo.connect('mongodb://vijith123:test123@ds036967.mlab.com:36967/vijith_auth', function (err, db) {
+            if(err){
+                console.warn(err.message);
+            } else if (event.text){
+					var collection = db.collection('nlp_chat');
+					var data = 'User : ' + event.text ;
+					collection.insert({ content: data }, function (err, o) {
+						if (err) { console.warn(err.message); }
+						else { console.log("chat message inserted into db: " + data); }
+					});
+            }
+        });
 		next();
 	},
 	send : function(event, next) {
 		console.log('send message ' + event.text );
-		console.log('send user: ' + event.address.user.name);
+		mongo.connect('mongodb://vijith123:test123@ds036967.mlab.com:36967/vijith_auth', function (err, db) {
+            if(err){
+                console.warn(err.message);
+            } else if (event.text){
+					var collection = db.collection('nlp_chat');
+					var data = 'Hum Assistant : ' + event.text ;
+					collection.insert({ content: data }, function (err, o) {
+						if (err) { console.warn(err.message); }
+						else { console.log("chat message inserted into db: " + data); }
+					});
+            }
+        });
 		next();
 	}
 })
+  
 var DialogLabels = {
     signup: 'Sign Up',
     features: 'Hum Features',
@@ -57,7 +80,7 @@ bot.dialog('/callsupport', [
     function (session, args) {
 		var card = createSupportCard(session);
         var msg = new builder.Message(session).addAttachment(card);
-		session.send('Sorry that i couldn\'t answer your query.');
+		session.send('Sorry that I couldn\'t answer your query.');
         setTimeout(function(){ session.send(msg); }, 3000);
 		setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 6000);
 },
@@ -456,7 +479,7 @@ function getWorksCard(session) {
         new builder.HeroCard(session)
             .title('OBD Device.')
             .subtitle('Plug the OBD Reader into your car\'s OBD-II port.')
-            .text('ocated under the steering wheel of most vehicles made after 1996.')
+            .text('Located under the steering wheel of most vehicles made after 1996.')
             .images([
                 builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
             ])
@@ -589,12 +612,33 @@ bot.dialog('/problem', [
 
 },
  function (session, results) {
-    var replyFromUser = results.response;
-	if (replyFromUser === 'yes'){
+     var replyFromUser = results.response.toLowerCase();
+	if (replyFromUser.indexOf('yes') > -1) {
 		var message = 'Let me check HUM system to analyze your problem! Give me a moment :)';	
 		session.send(message);
-		setTimeout(function(){ session.send('Seems like you din\'t start your Honda Civic after installing the HUM Device.'); }, 8000);
-		setTimeout(function(){ session.endDialog('Please start your car and you shouldn\'t have any issue with your HUM Application! :D'); }, 10000);
+				request.post('http://private-3f7ac-vijith.apiary-mock.com/HTIWebGateway/vv/rest/AccountStatusManagement/V3/get/accountandvehicleinfo',
+				{ dataArea: { userId: '1-H2JUW' } },
+				function (error, response, body) {
+					if (!error && response.statusCode == 200) {;
+						var test = JSON.parse(body);
+						if (test.dataArea){
+							var data = test.dataArea.accountList[0].vehicleList[0].vinStatus;
+						}
+						if(data === 'unknown'){
+							var card = errorCard(session);
+							var msg = new builder.Message(session).addAttachment(card);
+							setTimeout(function(){ session.send('The OBD device is not connected to the OBD port II!'); }, 8000);
+							setTimeout(function(){ session.send(msg); }, 10000);
+							setTimeout(function(){ session.endDialog('Please install the device properly and you should be good to go! :D'); }, 12000);
+						} else if ( data === 'incompatible') {
+							var card = compatibleMapcard(session, false);
+							var msg = new builder.Message(session).addAttachment(card);
+							setTimeout(function(){ session.send('Hum Device is not compatible with your car :('); }, 8000);
+							setTimeout(function(){ session.send(msg); }, 10000);
+							setTimeout(function(){ session.endDialog('Please check with our support team or follow the link in the above message to know more!'); }, 12000);
+						}
+					}
+				});
         
 	} else {
 		var message = 'Please follow the steps mentioned in the above links and you shouldn\'t have any issues! :D';	
@@ -605,6 +649,19 @@ bot.dialog('/problem', [
 ]).triggerAction({
    matches: 'problem'
 });
+
+function errorCard(session) {
+		return new builder.HeroCard(session)
+            .title('OBD Device Issue found.')
+            .subtitle('Seems like the OBD device is not properly connected to the OBD port')
+            .text('The OBD port II is located under the steering wheel of most vehicles made after 1996.')
+            .images([
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
+            ])
+            .buttons([
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'OBD issues FAQ')
+            ]);
+}
 
 function getCreatorsCard(session) {
     return [

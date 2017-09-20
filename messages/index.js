@@ -41,7 +41,7 @@ bot.use({
                 console.warn(err.message);
             } else if (event.text){
 					var collection = db.collection('nlp_chat');
-					var data = 'User : ' + event.text ;
+					var data = 'Wildcards : ' + event.text ;
 					collection.insert({ content: data }, function (err, o) {
 						if (err) { console.warn(err.message); }
 						else { console.log("chat message inserted into db: " + data); }
@@ -283,12 +283,12 @@ function createVideoCard(session) {
         .title('HUM')
         .subtitle('by Verizon')
         .text('When it comes to your car, you can never know too much. Thats why theres Hum. Hum equips you with the tools and know-how to help you drive smarter, safer and more connected.')
-        .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/pricing/fpo-13.png'))
+        .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-plus/hum-plus-01.png'))
         .media([
             { url: 'http://cust-support-portal.herokuapp.com/static/hum_app.mp4' }
         ])
         .buttons([
-            builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+            builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
         ]);
 }
 
@@ -332,32 +332,32 @@ function getCardsAttachments(session) {
             .subtitle('Near or far, Hum helps locate your car')
             .text('Hum\'s location features make it the ultimate car-sitter. Can\'t remember where you parked? Hum will show you. Want to monitor how fast you\'ve gone, and how far you and your family have driven? Hum does that, too. Wherever your car goes, Hum knows.')
             .images([
-                builder.CardImage.create(session, 'https://scache.vzw.com/kb/images/verizon_wireless/hum/driving_history_web_main.jpg')
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-plus/feature_tab_get_connected.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
 
         new builder.ThumbnailCard(session)
-            .title('Boundary alert')
-            .subtitle('Want to monitor how fast you\'ve gone, and how far you and your family have driven? Hum does that, too. Wherever your car goes, Hum knows.')
-            .text('Hum\'s location features make it the ultimate car-sitter. Can\'t remember where you parked? Hum will show you. Want to monitor how fast you\'ve gone, and how far you and your family have driven? Hum does that, too. Wherever your car goes, Hum knows.')
+            .title('Vehicle Diagnostics')
+            .subtitle('Check engine light on? Check Hum first.')
+            .text('With easy-to-understand alerts for hundreds of car issues, you get answers before you have questions — helping you save money and avoid serious breakdowns.')
             .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/animation/fpo-phonescreen-5.png')
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-plus/feature_tab_get_ahead.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
 
         new builder.HeroCard(session)
-            .title('Speed alert')
-            .subtitle('Want to check if your family members are driving at safe speeds on Road?')
-            .text('Hum\'s location features make it the ultimate car-sitter. Can\'t remember where you parked? Hum will show you. Want to monitor how fast you\'ve gone, and how far you and your family have driven? Hum does that, too. Wherever your car goes, Hum knows.')
+            .title('Emergency Assistance')
+            .subtitle('Know you have help on the road with 24/7 Emergency Assistance.')
+            .text('Hum automatically sends crews your way if it detects a crash and if you have an emergency on the road, you can connect to help at the push of a button.')
             .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/animation/fpo-phonescreen-3.png')
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-plus/feature_tab_get_help.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
 
         new builder.ThumbnailCard(session)
@@ -368,7 +368,7 @@ function getCardsAttachments(session) {
                 builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/animation/fpo-phonescreen-4.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ])
     ];
 }
@@ -417,7 +417,7 @@ function createMapcard(session, city) {
             builder.CardImage.create(session, 'https://www.mapquestapi.com/staticmap/v4/getplacemap?key=ezuyhAKQ1v0y6i2AUYXndRjkFagn07Bn&location='+city+'&size=500,280&zoom=9&showicon=red_1-1')
         ])
         .buttons([
-            builder.CardAction.openUrl(session, 'https://www.mapquest.com/search/results?layer=shopping&query='+city+'&boundingBox=47.100044694025215,-121.11328124999999,28.729130483430154,-74.8828125&page=0', 'More locations.')
+            builder.CardAction.openUrl(session, 'https://www.mapquest.com/search/results?query=Verizon%20WirelessqueryId%3Dsic:481207F66&boundingBox=33.887517493601685,-84.72999572753906,33.582019124986424,-84.00764465332031&page=0', 'More locations.')
         ]);
 }
 
@@ -455,17 +455,17 @@ function getWorksCard(session) {
                 builder.CardImage.create(session, 'http://unified-mobile.com/wp-content/uploads/2016/03/Hum-3.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
         new builder.HeroCard(session)
             .title('Mobile App and Portal.')
             .subtitle('')
             .text('Download the Hum app and create your account.')
             .images([
-                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-3.png')
+                builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-plus/hum-plus-how-01.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
         new builder.HeroCard(session)
             .title('Hum Speaker.')
@@ -475,7 +475,7 @@ function getWorksCard(session) {
                 builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-2.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ]),
 
         new builder.HeroCard(session)
@@ -486,7 +486,7 @@ function getWorksCard(session) {
                 builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'Learn More')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
             ])
     ];
 }
@@ -655,12 +655,12 @@ function createVideoHumApp(session) {
         .title('Activating HUM')
         .subtitle('HUM APP')
         .text('Hum equips you with the tools and know-how to help you drive smarter, safer and more connected.')
-        .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/pricing/fpo-13.png'))
+        .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/hum-x/hum-x-01.png'))
         .media([
             { url: 'http://cust-support-portal.herokuapp.com/static/Activate.mp4' }
         ])
         .buttons([
-            builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+            builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'Learn More')
         ]);
 }
 
@@ -673,7 +673,7 @@ function errorCard(session) {
                 builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/promo/how-1.png')
             ])
             .buttons([
-                builder.CardAction.openUrl(session, 'https://www.hum.com/products', 'OBD issues FAQ')
+                builder.CardAction.openUrl(session, 'https://www.hum.com/products/hum-plus', 'OBD issues FAQ')
             ]);
 }
 

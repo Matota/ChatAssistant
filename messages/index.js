@@ -82,8 +82,8 @@ bot.dialog('/callsupport', [
         var msg = new builder.Message(session).addAttachment(card);
 		session.send('Sorry that I couldn\'t answer your query.');
         setTimeout(function(){ session.send(msg); }, 2000);
- -      setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 4000);
- -      setTimeout(function(){ session.send('Here is your unique transaction ID ' + Math.floor((Math.random() * 9999293) + 1)+ '.'); }, 6000);
+		setTimeout(function(){ session.endDialog('Click the button above and we will redirect you to the support team :)'); }, 4000);
+		setTimeout(function(){ session.send('Here is your unique transaction ID ' + Math.floor((Math.random() * 9999293) + 1)+ '.'); }, 6000);
 		
 },
  function (session, results) {
@@ -285,7 +285,7 @@ function createVideoCard(session) {
         .text('When it comes to your car, you can never know too much. Thats why theres Hum. Hum equips you with the tools and know-how to help you drive smarter, safer and more connected.')
         .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/pricing/fpo-13.png'))
         .media([
-            { url: 'https://www.hum.com/content/dam/hum/video/RKN_Verizon_Hum_optimized.mp4' }
+            { url: 'http://cust-support-portal.herokuapp.com/static/hum_app.mp4' }
         ])
         .buttons([
             builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
@@ -602,15 +602,13 @@ bot.dialog('/creators', [
 
 bot.dialog('/problem', [
     function (session, args) {
-		var cards = getWorksCard();
+		var cards = createVideoHumApp();
 
     // create reply with Carousel AttachmentLayout
-		var reply = new builder.Message(session)
-			.attachmentLayout(builder.AttachmentLayout.carousel)
-			.attachments(cards);
+		var reply = new builder.Message(session).addAttachment(cards);
 
 			session.send(reply);
-			setTimeout(function(){ builder.Prompts.text(session, 'Have you tried to follow the steps mentioned in the above links?'); }, 3000);
+			setTimeout(function(){ builder.Prompts.text(session, 'Have you tried to follow the steps mentioned in the above video?'); }, 3000);
 
 },
  function (session, results) {
@@ -643,7 +641,7 @@ bot.dialog('/problem', [
 				});
         
 	} else {
-		var message = 'Please follow the steps mentioned in the above links and you shouldn\'t have any issues! :D';	
+		var message = 'Please follow the steps mentioned in the above video and you shouldn\'t have any issues! :D';	
 		 session.endDialog(message);
 	}
         
@@ -651,6 +649,20 @@ bot.dialog('/problem', [
 ]).triggerAction({
    matches: 'problem'
 });
+
+function createVideoHumApp(session) {
+    return new builder.VideoCard(session)
+        .title('Activating HUM')
+        .subtitle('HUM APP')
+        .text('Hum equips you with the tools and know-how to help you drive smarter, safer and more connected.')
+        .image(builder.CardImage.create(session, 'https://www.hum.com/content/dam/hum/pricing/fpo-13.png'))
+        .media([
+            { url: 'http://cust-support-portal.herokuapp.com/static/Activate.mp4' }
+        ])
+        .buttons([
+            builder.CardAction.openUrl(session, 'https://www.hum.com/features', 'Learn More')
+        ]);
+}
 
 function errorCard(session) {
 		return new builder.HeroCard(session)

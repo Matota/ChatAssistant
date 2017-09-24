@@ -25,7 +25,7 @@ var luisAPIHostName = process.env.LuisAPIHostName || 'westus.api.cognitive.micro
 //const LuisModelUrl = 'https://' + luisAPIHostName + '/luis/v1/application?id=' + luisAppId + '&subscription-key=' + luisAPIKey;
 
 // Main dialog with LUIS
-var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/b2cb429c-dcb6-45c2-86b8-2b8c5f54daae?subscription-key=4c1fb153e77e4323b03fffc2d3f1f0b9&verbose=true&timezoneOffset=0&spellCheck=true&q=');
+var recognizer = new builder.LuisRecognizer('https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/cecc467e-b250-4220-8ba2-c4fb436f3f1a?subscription-key=140d7d614bc9482b83d7fc01091ec7ea&timezoneOffset=0&verbose=true&spellCheck=true&q=');
 bot.recognizer(recognizer);
 
 /*

@@ -68,6 +68,14 @@ bot.use({
 	}
 })
   
+bot.on('conversationUpdate', function (message) {
+    console.log('test');
+    if (sentUpdate) {
+        bot.beginDialog(message.address, '/Greetings');
+        sentUpdate = false;
+    }
+    
+});
 var DialogLabels = {
     signup: 'Sign Up',
     features: 'Hum Features',
